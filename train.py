@@ -10,7 +10,7 @@ from transformers import ASTFeatureExtractor
 from data_loader import JamendoDataModule
 
 import torch
-from trainer import AudioModel  # Import your Lightning module
+from trainer import AudioModel  
 from utilities.constants import *
 
 def configure_logging():
@@ -50,8 +50,8 @@ def main(config):
     
     trainer = pl.Trainer(
         max_epochs=config.n_epochs,
-        devices=[0, 1],  # Specify the GPUs you want to use
-        accelerator='gpu',  # Use the GPU accelerator
+        devices=[0, 1], 
+        accelerator='gpu',  
         callbacks=[checkpoint_callback,],
         logger=logger
     )
