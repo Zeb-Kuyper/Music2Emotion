@@ -7,7 +7,7 @@ from transformers import ASTFeatureExtractor
 from pytorch_lightning.callbacks import ModelCheckpoint
 
 from data_loader import JamendoDataModule
-from trainer import AudioModel  # Import your Lightning module
+from trainer import AudioModel  
 
 from utilities.constants import *
 
@@ -39,8 +39,8 @@ def main(config):
     logger = TensorBoardLogger("tb_logs", name="test_audio_classification")
 
     trainer = pl.Trainer(
-        devices=[0],  # Specify the GPUs you want to use
-        accelerator='gpu',  # Use the GPU accelerator
+        devices=[0],  
+        accelerator='gpu',  
         logger=logger
     )
 
