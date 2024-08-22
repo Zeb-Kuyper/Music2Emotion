@@ -21,10 +21,10 @@ def load_genre_info(tsv_file):
     genre_info = {}
     with open(tsv_file, newline='') as tsvfile:
         reader = csv.reader(tsvfile, delimiter='\t')
-        headers = next(reader)  # Skip the header row
+        headers = next(reader) 
         for row in reader:
             track_id = row[0]
-            tags = row[5:]  # Assuming 'TAGS' is the 6th column and beyond
+            tags = row[5:]  
             genres = [tag.strip() for tag in tags if '---' in tag]
             genre_info[track_id] = genres
     return genre_info
