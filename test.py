@@ -5,12 +5,9 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 from transformers import ASTFeatureExtractor
 from pytorch_lightning.callbacks import ModelCheckpoint
-
 from data_loader import JamendoDataModule
-from trainer import AudioModel  
-
+from trainer import MusicClassifier
 from utilities.constants import *
-
 
 def configure_logging():
     logging.basicConfig(
@@ -22,30 +19,24 @@ def configure_logging():
 def main(config):
     configure_logging()
 
-    feature_extractor = ASTFeatureExtractor()
     data_module = JamendoDataModule(
         root=config.audio_path,
         subset=config.subset,
         batch_size=config.batch_size,
         split=config.split,
-        feature_extractor=feature_extractor
     )
 
     data_module.setup()
     
-    # model = AudioModel.load_from_checkpoint(CHECKPOINT)
-    model = AudioModel.load_from_checkpoint(CHECKPOINT, config=config)
-
+    model = MusicClassifier.load_from_checkpoint(CHECKPOINT, config=config)
     logger = TensorBoardLogger("tb_logs", name="test_audio_classification")
-
     trainer = pl.Trainer(
-        devices=[0],  
-        accelerator='gpu',  
+        devices=[0], 
+        accelerator='gpu', 
         logger=logger
     )
 
     testloader = data_module.test_dataloader()
-
     trainer.test(model, testloader)
 
 if __name__ == '__main__':
@@ -56,6 +47,8 @@ if __name__ == '__main__':
     # parser.add_argument('--checkpoint_path', type=str, required=True, help='Path to the saved model checkpoint.')    
     parser.add_argument('--results_save_path', type=str, default='./results/')
     parser.add_argument('--split', type=int, default=0)
+    parser.add_argument('--classifier', type=str, default=CLASSIFIER)
+
     
     config = parser.parse_args()
     main(config)
