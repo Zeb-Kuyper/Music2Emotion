@@ -1,0 +1,57 @@
+version: "1.25"
+audio_path: './dataset/jamendo'
+subset: 'moodtheme'
+lr: 1e-4
+log_step: 1
+split: 0
+batch_size: 8
+sr: 16000
+
+dataset:
+  root: './dataset/jamendo'
+  subset: 'moodtheme'
+  batch_size: 8
+  split: 0
+  segment_type: "all"
+  num_workers: 4
+  # - all
+  # - f10s
+  # - f30s
+  # - 10s
+  # - 30s
+
+model:
+  encoder: "MERT"
+  # - MERT
+  # - M2L
+  # - LIBROSA
+  # - Encodec
+  # - DAC
+  aggr_method: "mean"
+  # - mean
+  # - median
+  # - 80th_percentile
+  # - max
+  classifier: "linear-mt"
+  # - transformer
+  # - linear
+  # - linear-small
+  # - linear-multitask
+  # - linear-small-multitask
+  # - linear-mt
+  lr: 1e-4
+
+# --------------------------------------- #
+genre_class_size: 87
+mood_class_size: 56
+instr_class_size: 40
+dac_latents_size: 72
+dac_rvq_size: 9
+# --------------------------------------- #
+# model_save_path: './saved_models/'
+# results_save_path: './results/'
+
+# hydra:
+#   job:
+#     chdir: True
+

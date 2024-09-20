@@ -1,0 +1,13 @@
+defaults:
+  - base_config
+  - _self_
+
+devices: [0,1,2,3]
+epochs: 3
+batch_size: 8
+
+trainer:
+  devices: ${devices}
+  max_epochs: ${epochs}
+  accelerator: 'gpu'
+  # strategy: 'ddp_find_unused_parameters_true'

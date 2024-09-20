@@ -12,14 +12,7 @@ import json
 import math
 from sklearn.preprocessing import StandardScaler
 
-# def preprocess(latent, seq_len=60):
-#     if latent.shape[1] > seq_len:
-#         return latent[:, :seq_len]  # Clip to seq_len
-#     elif latent.shape[1] < seq_len:
-#         padding = torch.zeros(latent.shape[0], seq_len - latent.shape[1])
-#         return torch.cat((latent, padding), dim=1)  # Pad to seq_len
-#     return latent
-
+# from utilities.constants import *
 def preprocess(latent, seq_len=60):
     if latent.shape[0] > seq_len:
         return latent[:seq_len, :]  # Clip to seq_len
@@ -53,16 +46,15 @@ def load_instr_info(tsv_file):
     return instr_info
 
 class AudioFolder(data.Dataset):
-    def __init__(self, root, subset, tr_val='train', split=0, seq_len=60, resample_rate=16000, feature_extractor = None):
-        self.trval = tr_val
-        self.root = root
-        self.seq_len = seq_len
-        self.resample_rate = resample_rate
+    def __init__(self, **task_args):
+        self.task_args = task_args
+        self.tr_val = task_args.get('tr_val', "train")
+        self.root = task_args.get('root', "./dataset/jamendo")
+        self.subset = task_args.get('subset', "moodtheme")
+        self.split = task_args.get('split', 0)
+        self.segment_type = task_args.get('segment_type', "all")
 
-        self.feature_extractor = feature_extractor
-        # self.encdec = EncoderDecoder()
-
-        fn = f'dataset/jamendo/splits/split-{split}/{subset}_{tr_val}_dict.pickle'
+        fn = f'dataset/jamendo/splits/split-{self.split}/{self.subset}_{self.tr_val}_dict.pickle'
         
         genre_path = 'dataset/jamendo/meta/autotagging_genre.tsv'
         instr_path = 'dataset/jamendo/meta/autotagging_instrument.tsv'
@@ -77,6 +69,8 @@ class AudioFolder(data.Dataset):
         
         with open(fn, 'rb') as pf:
             self.dictionary = pickle.load(pf)
+            # dictionary :
+            # {0: {'path': '48/948.mp3', 'duration': 9968.0, 'tags': array([0., 0., 0., 1., ... ,  0.])}, 1: {'path': ... } }
 
     def __getitem__(self, index):
         path = self.dictionary[index]['path'] # e.g. path: "47/3347.mp3"
@@ -135,6 +129,8 @@ class AudioFolder(data.Dataset):
                 layer_embedding = segment[:, 6, :]  # Shape: (1, 768)
                 layer_embedding = np.squeeze(layer_embedding)  # Shape: (768,)
                 embeddings.append(layer_embedding)
+                if self.segment_type == "f30s":
+                    break
         
         embeddings = np.array(embeddings)
         final_embedding_mert = np.mean(embeddings, axis=0)  # Shape: (768,)
@@ -153,59 +149,6 @@ class AudioFolder(data.Dataset):
         final_embedding_m2l = np.mean(latent_array_music2latent_10s, axis=0)  # Shape will be [8192]
         final_embedding_m2l = torch.from_numpy(final_embedding_m2l)
 
-        # 30s stacking
-        # latent_list_music2latent_30s = []
-        # if len(latent_array_music2latent_10s) >= 3:
-        #     for i in range(len(latent_array_music2latent_10s) - 2):
-        #         averaged_segment = np.mean(latent_array_music2latent_10s[i:i+3], axis=0)
-        #         latent_list_music2latent_30s.append(averaged_segment)
-        # else:
-        #     averaged_segment = np.mean(latent_array_music2latent_10s, axis=0)
-        #     latent_list_music2latent_30s.append(averaged_segment)
-        # latent_array_music2latent_30s = np.vstack(latent_list_music2latent_30s) # Shape will be [num_segments-2, 768]
-
-        # average
-
-        # --- Feature normalization ---  
-        # mean = torch.mean(averaged_latent_mert)
-        # std = torch.std(averaged_latent_mert)
-        # if std != 0:  # Prevent division by zero
-        #     averaged_latent_mert = (averaged_latent_mert - mean) / std
-        
-        # mean = torch.mean(averaged_latent_music2latent)
-        # std = torch.std(averaged_latent_music2latent)
-        # if std != 0:  # Prevent division by zero
-        #     averaged_latent_music2latent = (averaged_latent_music2latent - mean) / std
-
-        # mean = torch.mean(feature_librosa_tensor)
-        # std = torch.std(feature_librosa_tensor)
-        # if std != 0:  # Prevent division by zero
-        #     feature_librosa_tensor = (feature_librosa_tensor - mean) / std
-
-        # --- Feature concatenation ---  
-        # combined_feature_all = torch.cat((averaged_latent_mert, averaged_latent_music2latent, feature_librosa_tensor))
-        
-        # 10s stacking
-        # min_size = min(latent_array_mert_10s.shape[0], latent_array_music2latent_10s.shape[0])
-        # latent_array_mert_10s = latent_array_mert_10s[:min_size]
-        # latent_array_music2latent_10s = latent_array_music2latent_10s[:min_size]
-        # combined_feature_10s = np.concatenate((latent_array_mert_10s, latent_array_music2latent_10s), axis=1)
-        # combined_feature_10s = preprocess(torch.from_numpy(combined_feature_10s), seq_len=self.seq_len)
-
-        # 30s stacking
-        # min_size = min(latent_array_mert_30s.shape[0], latent_array_music2latent_30s.shape[0])
-        # latent_array_mert_30s = latent_array_mert_30s[:min_size]
-        # latent_array_music2latent_30s = latent_array_music2latent_30s[:min_size]
-        # combined_feature_30s = np.concatenate((latent_array_mert_30s, latent_array_music2latent_30s), axis=1)
-        # combined_feature_30s = preprocess(torch.from_numpy(combined_feature_30s), seq_len=self.seq_len)
-
-        # min_size = min(latent_array_mert.shape[0], latent_array_music2latent.shape[0])
-        # latent_array_mert = latent_array_mert[:min_size]
-        # latent_array_music2latent = latent_array_music2latent[:min_size]
-        # combined_feature = np.concatenate((latent_array_mert, latent_array_music2latent), axis=1)
-        # combined_feature = preprocess(torch.from_numpy(combined_feature), seq_len=self.seq_len)
-        # combined_feature = torch.from_numpy(combined_feature)
-
         return {
                 "x_mert" : final_embedding_mert,
                 "x_m2l" : final_embedding_m2l,
@@ -220,20 +163,16 @@ class AudioFolder(data.Dataset):
         return len(self.dictionary)
     
 class JamendoDataModule(pl.LightningDataModule):
-    def __init__(self, root, subset, batch_size, split=0, seq_len=60, num_workers=4, feature_extractor=None):
+    def __init__(self, **task_args):
         super().__init__()
-        self.root = root
-        self.subset = subset
-        self.batch_size = batch_size
-        self.split = split
-        self.seq_len = seq_len
-        self.num_workers = num_workers
-        self.feature_extractor = feature_extractor
-
+        self.task_args = task_args
+        self.batch_size = task_args.get('batch_size', 8)
+        self.num_workers = task_args.get('num_workers', 4)
+        
     def setup(self, stage=None):
-        self.train_dataset = AudioFolder(self.root, self.subset, tr_val='train', split=self.split, seq_len=self.seq_len, feature_extractor=self.feature_extractor)
-        self.val_dataset = AudioFolder(self.root, self.subset, tr_val='validation', split=self.split, seq_len=self.seq_len, feature_extractor=self.feature_extractor)
-        self.test_dataset = AudioFolder(self.root, self.subset, tr_val='test', split=self.split, seq_len=self.seq_len, feature_extractor = self.feature_extractor)
+        self.train_dataset = AudioFolder(**self.task_args, tr_val='train')
+        self.val_dataset = AudioFolder(**self.task_args, tr_val='validation')
+        self.test_dataset = AudioFolder(**self.task_args, tr_val='test')
 
     def train_dataloader(self):
         return data.DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers, persistent_workers=True)
@@ -245,20 +184,31 @@ class JamendoDataModule(pl.LightningDataModule):
         return data.DataLoader(self.test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers, persistent_workers=True)
 
 
+# class DMDDDataModule(pl.LightningDataModule):
+#     def __init__(self, root, subset, batch_size, split=0, seq_len=60, num_workers=4, feature_extractor=None):
+#         super().__init__()
+#         self.root = root
+#         self.subset = subset
+#         self.batch_size = batch_size
+#         self.split = split
+#         self.seq_len = seq_len
+#         self.num_workers = num_workers
+#         self.feature_extractor = feature_extractor
+
+#     def setup(self, stage=None):
+#         self.train_dataset = AudioFolder(self.root, self.subset, tr_val='train', split=self.split, seq_len=self.seq_len, feature_extractor=self.feature_extractor)
+#         self.val_dataset = AudioFolder(self.root, self.subset, tr_val='validation', split=self.split, seq_len=self.seq_len, feature_extractor=self.feature_extractor)
+#         self.test_dataset = AudioFolder(self.root, self.subset, tr_val='test', split=self.split, seq_len=self.seq_len, feature_extractor = self.feature_extractor)
+
+#     def train_dataloader(self):
+#         return data.DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers, persistent_workers=True)
+
+#     def val_dataloader(self):
+#         return data.DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers, persistent_workers=True)
+
+#     def test_dataloader(self):
+#         return data.DataLoader(self.test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=self.num_workers, persistent_workers=True)
 
 
 
 
-
-# print(averaged_latent.shape)
-# assert(False)
-# waveform, sampling_rate = torchaudio.load(fn_mp3)
-# if waveform.shape[0] > 1:
-#     waveform = waveform.mean(dim=0).unsqueeze(0)
-# features_music2latent = self.feature_extractor.encode(waveform, max_waveform_length=44100*1, extract_features=True)
-# features_music2latent = self.encdec.encode(waveform, extract_features=True)
-# features_music2latent = features_music2latent.squeeze().mean(axis=-1)
-# resampler = T.Resample(sampling_rate, self.resample_rate)
-# waveform = resampler(waveform)
-# inputs = self.feature_extractor(waveform.squeeze().numpy(), sampling_rate=self.resample_rate, padding="max_length", return_tensors="pt")
-# input_values = inputs.input_values.squeeze(0)

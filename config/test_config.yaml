@@ -1,0 +1,14 @@
+defaults:
+  - base_config
+  - _self_
+
+batch_size: 8
+devices: [0]
+
+trainer:
+  devices: ${devices}
+  accelerator: 'gpu'
+
+checkpoint_latest: True
+## If not True, then use following checkpoint.
+checkpoint: "tb_logs/train_audio_classification/version_110/checkpoints/21-0.1202.ckpt"

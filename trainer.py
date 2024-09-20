@@ -20,38 +20,49 @@ from model.linear_small_multitask import MultitaskFeedforwardModelSmall
 from model.linear_mt import FeedforwardModelMT
 from model.linear_mt_multitask import MultitaskFeedforwardModelMT
 
+import logging
+import yaml
 
-from utilities.constants import *
-
+log = logging.getLogger(__name__)
+# from utilities.constants import *
 class MusicClassifier(pl.LightningModule):
-    def __init__(self, config):
+    def __init__(self, **task_args):
         super(MusicClassifier, self).__init__()
-        self.config = config
+        self.task_args = task_args
+        self.encoder = task_args.get('encoder', "MERT")
+        self.classifier = task_args.get('classifier', "linear-mt")
+        self.lr = task_args.get('lr', 1e-4)
+        self.output_file = task_args.get('output_file', None)
+        
+        # self.config = config
         feature_dim_dict = {
             "MERT": 768,
             "M2L": 8192,
             "LIBROSA": 51
         }
-        encoders = ENCODER.split("-")
-        self.inputdim = sum(feature_dim_dict[encoder] for encoder in encoders)        
+        genre_class_size = 87
+        mood_class_size = 56
+        instr_class_size = 40
 
-        if CLASSIFIER == "transformer":
+        encoders = self.encoder.split("-")
+        self.inputdim = sum(feature_dim_dict[encoder] for encoder in encoders)
+
+        if self.classifier == "transformer":
             self.model = LatentTransformerClassifier( feature_dim= self.inputdim )
-        elif CLASSIFIER == "transformer-multitask":
+        elif self.classifier == "transformer-multitask":
             self.model = MultitaskLatentTransformerClassifier( feature_dim=self.inputdim )
-        elif CLASSIFIER == "linear":
-            self.model = FeedforwardModel( self.inputdim ,56 )
-        elif CLASSIFIER == "linear-small":
-            self.model = FeedforwardModelSmall( self.inputdim ,56 )
-        elif CLASSIFIER == "linear-multitask":
-            self.model = MultitaskFeedforwardModel( self.inputdim , MOOD_CLASS_SIZE, GENRE_CLASS_SIZE, INSTR_CLASS_SIZE )
-        elif CLASSIFIER == "linear-small-multitask":
-            self.model = MultitaskFeedforwardModelSmall( self.inputdim , MOOD_CLASS_SIZE, GENRE_CLASS_SIZE, INSTR_CLASS_SIZE )
-        elif CLASSIFIER == "linear-mt":
-            self.model = FeedforwardModel( self.inputdim ,56 )
-        elif CLASSIFIER == "linear-mt-multitask":
-            self.model = MultitaskFeedforwardModelMT( self.inputdim ,56 )
-
+        elif self.classifier == "linear":
+            self.model = FeedforwardModel( self.inputdim ,mood_class_size )
+        elif self.classifier == "linear-small":
+            self.model = FeedforwardModelSmall( self.inputdim ,mood_class_size )
+        elif self.classifier == "linear-multitask":
+            self.model = MultitaskFeedforwardModel( self.inputdim , mood_class_size, genre_class_size, instr_class_size )
+        elif self.classifier == "linear-small-multitask":
+            self.model = MultitaskFeedforwardModelSmall( self.inputdim , mood_class_size, genre_class_size, instr_class_size )
+        elif self.classifier == "linear-mt":
+            self.model = FeedforwardModel( self.inputdim , mood_class_size )
+        elif self.classifier == "linear-mt-multitask":
+            self.model = MultitaskFeedforwardModelMT( self.inputdim , mood_class_size )
 
         self.loss_fn = nn.BCEWithLogitsLoss()
         #self.loss_fn = nn.BCELoss()
@@ -65,20 +76,6 @@ class MusicClassifier(pl.LightningModule):
         self.trn_loss = MeanMetric()
         self.val_loss = MeanMetric()
 
-    def adapt_classes(self, subset):
-        if subset == 'all':
-            return 183
-        elif subset == 'genre':
-            return 87
-        elif subset == 'instrument':
-            return 40
-        elif subset == 'moodtheme':
-            return 56
-        elif subset == 'top50tags':
-            return 50
-        else:
-            raise ValueError(f"Unknown subset: {subset}")
-
     def forward(self, x):
         return self.model(x)
 
@@ -91,10 +88,10 @@ class MusicClassifier(pl.LightningModule):
             "M2L": x_m2l,
             "LIBROSA": x_librosa
         }
-        encoders = ENCODER.split("-")
+        encoders = self.encoder.split("-")
         x_combined = torch.cat([feature_dict[encoder] for encoder in encoders], dim=-1)
 
-        if "multitask" in CLASSIFIER:
+        if "multitask" in self.classifier:
             y_mood = batch["y_mood"]
             y_genre = batch["y_genre"]
             y_instr = batch["y_instr"]
@@ -122,10 +119,10 @@ class MusicClassifier(pl.LightningModule):
             "M2L": x_m2l,
             "LIBROSA": x_librosa
         }
-        encoders = ENCODER.split("-")
+        encoders = self.encoder.split("-")
         x_combined = torch.cat([feature_dict[encoder] for encoder in encoders], dim=-1)
 
-        if "multitask" in CLASSIFIER:
+        if "multitask" in self.classifier:
             y_mood = batch["y_mood"]
             y_genre = batch["y_genre"]
             y_instr = batch["y_instr"]
@@ -155,10 +152,10 @@ class MusicClassifier(pl.LightningModule):
             "M2L": x_m2l,
             "LIBROSA": x_librosa
         }
-        encoders = ENCODER.split("-")
+        encoders = self.encoder.split("-")
         x_combined = torch.cat([feature_dict[encoder] for encoder in encoders], dim=-1)
 
-        if "multitask" in CLASSIFIER:
+        if "multitask" in self.classifier:
             y_mood = batch["y_mood"]
             y_genre = batch["y_genre"]
             y_instr = batch["y_instr"]
@@ -188,16 +185,22 @@ class MusicClassifier(pl.LightningModule):
     def on_test_end(self):
         roc_auc, pr_auc = self.get_auc(self.prd_array, self.gt_array)
 
-        print('*** Display ROC_AUC_MACRO scores ***')
-        print(roc_auc)
-
-        print('*** Display PR_AUC_MACRO scores ***')
-        print(pr_auc)
-
+        log.info('*** Display ROC_AUC_MACRO scores ***')
+        log.info(roc_auc)
+        log.info('*** Display PR_AUC_MACRO scores ***')
+        log.info(pr_auc)
+ 
         self.prd_array.clear()
         self.gt_array.clear()
         self.song_array.clear()
 
+        if self.output_file is not None:
+            with open(self.output_file, 'w') as f:
+                f.write(f"ROC_AUC_MACRO: {roc_auc}\n")
+                f.write(f"PR_AUC_MACRO: {pr_auc}\n")
+
+        return {"test_roc_auc": roc_auc, "test_pr_auc": pr_auc}
+    
     def get_auc(self, prd_array, gt_array):
         prd_array = np.array(prd_array)
         gt_array = np.array(gt_array)
@@ -212,5 +215,5 @@ class MusicClassifier(pl.LightningModule):
         return roc_auc, pr_auc
     
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=1e-4)
+        return torch.optim.Adam(self.parameters(), lr=self.lr)
     
