@@ -3,13 +3,15 @@ import logging
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
-from data_loader import JamendoDataModule
+from data_loader import DataModule
 from trainer import MusicClassifier
 import yaml
 from omegaconf import DictConfig
 import hydra
 from hydra.utils import to_absolute_path
 from hydra.core.hydra_config import HydraConfig
+from pytorch_lightning.utilities.combined_loader import CombinedLoader
+
 
 log = logging.getLogger(__name__)
 
@@ -26,13 +28,33 @@ def save_metrics_and_checkpoint(metrics, checkpoint, output_file):
     with open(output_file, 'w') as f:
         yaml.dump(data, f)
 
-def read_best_checkpoint_info(file_path):
+def read_best_checkpoint_info(file_path, dataset_type=None):
+    """Read the best checkpoint file."""
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Checkpoint info file not found: {file_path}")
+    
     with open(file_path, 'r') as f:
         lines = f.readlines()
-        checkpoint = lines[0].split("Best checkpoint: ")[-1].strip()
-    return checkpoint
+    
+    if dataset_type == "mood":
+        checkpoint_line = next((line for line in lines if line.startswith("Best checkpoint (mood):")), None)
+    elif dataset_type == "va":
+        checkpoint_line = next((line for line in lines if line.startswith("Best checkpoint (va):")), None)
+    else:
+        checkpoint_line = next((line for line in lines if line.startswith("Best checkpoint:")), None)
+
+    if not checkpoint_line:
+        raise ValueError(f"No checkpoint found for dataset type '{dataset_type}' in the file.")
+    
+    return checkpoint_line.split(": ")[-1].strip()
+
+# def read_best_checkpoint_info(file_path):
+#     if not os.path.exists(file_path):
+#         raise FileNotFoundError(f"Checkpoint info file not found: {file_path}")
+#     with open(file_path, 'r') as f:
+#         lines = f.readlines()
+#         checkpoint = lines[0].split("Best checkpoint: ")[-1].strip()
+#     return checkpoint
 
 @hydra.main(version_base=None, config_path="config", config_name="test_config")
 def main(config: DictConfig):
@@ -47,29 +69,41 @@ def main(config: DictConfig):
     output_file = os.path.join(version_log_dir, 'test_metrics.txt')
 
     if config.checkpoint_latest:
-        best_checkpoint_file = os.path.join(version_log_dir, 'best_checkpoint.txt')
-        ckpt = read_best_checkpoint_info(best_checkpoint_file)
+        if config.multitask:
+            dataset_type = config.dataset_type  # Expecting 'mood' or 'va'
+            best_checkpoint_file = os.path.join(version_log_dir, 'best_checkpoint.txt')
+            ckpt = read_best_checkpoint_info(best_checkpoint_file, dataset_type)
+        else:
+            best_checkpoint_file = os.path.join(version_log_dir, 'best_checkpoint.txt')
+            ckpt = read_best_checkpoint_info(best_checkpoint_file)
     else:
         ckpt = config.checkpoint
     if not os.path.exists(ckpt):
         raise FileNotFoundError(f"Checkpoint file not found: {ckpt}")
     
     log.info(f"Using checkpoint: {ckpt}")
-    data_module = JamendoDataModule( **config.dataset )
+    data_module = DataModule( config )
     data_module.setup()
-    model = MusicClassifier.load_from_checkpoint(ckpt, **config.model, output_file=output_file)
+
+    testloaders = {dataset_name: loader for dataset_name, loader in zip(config.datasets, data_module.test_dataloader())}
+    combined_test_loader = CombinedLoader(testloaders, mode="max_size")
+
+    model = MusicClassifier.load_from_checkpoint(ckpt, cfg=config, output_file=output_file)
     logger = TensorBoardLogger(save_dir=log_base_dir,  
                                 name="",  
                                 version=latest_version)
     trainer = pl.Trainer(**config.trainer,
                         logger=logger)
-    testloader = data_module.test_dataloader()
-    trainer.test(model, testloader)
+    
+    
+    trainer.test(model, combined_test_loader)
+
+if __name__ == '__main__':
+    main()
+
+
 
     # metrics = test_results
     # log.info(f"Test metrics: {metrics}")
     # output_file = os.path.join(version_log_dir, 'test_metrics.yaml')
     # save_metrics_and_checkpoint(metrics, ckpt, output_file)
-
-if __name__ == '__main__':
-    main()
