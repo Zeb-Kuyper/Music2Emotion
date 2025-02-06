@@ -9,7 +9,7 @@
 This repository contains the code accompanying the paper "Towards Unified Music Emotion Recognition across Dimensional and Categorical Models" by Dr. Jaeyong Kang and Prof. Dorien Herremans.
 
 <div align="center">
-  <img src="v2m.png" width="400"/>
+  <img src="m2e.png" width="400"/>
 </div>
 
 ## Introduction
