@@ -1,5 +1,9 @@
 import os
 import logging
+
+import torch
+torch.set_float32_matmul_precision("medium")
+
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -48,14 +52,6 @@ def read_best_checkpoint_info(file_path, dataset_type=None):
     
     return checkpoint_line.split(": ")[-1].strip()
 
-# def read_best_checkpoint_info(file_path):
-#     if not os.path.exists(file_path):
-#         raise FileNotFoundError(f"Checkpoint info file not found: {file_path}")
-#     with open(file_path, 'r') as f:
-#         lines = f.readlines()
-#         checkpoint = lines[0].split("Best checkpoint: ")[-1].strip()
-#     return checkpoint
-
 @hydra.main(version_base=None, config_path="config", config_name="test_config")
 def main(config: DictConfig):
     log.info("Testing starts")
@@ -100,10 +96,3 @@ def main(config: DictConfig):
 
 if __name__ == '__main__':
     main()
-
-
-
-    # metrics = test_results
-    # log.info(f"Test metrics: {metrics}")
-    # output_file = os.path.join(version_log_dir, 'test_metrics.yaml')
-    # save_metrics_and_checkpoint(metrics, ckpt, output_file)
