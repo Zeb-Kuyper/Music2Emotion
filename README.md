@@ -29,6 +29,21 @@ We present a unified multitask learning framework for Music Emotion Recognition 
 
 ## Directory Structure
 
+* `config/`: config files
+* `dataset/`: Dataset directories
+* `dataset_loader/`: Dataset loader 
+* `model/`
+  * `linear.py`: FC layer with MERT feature
+  * `linear_attn_ck.py`: FC layer with MERT + Musical Features (Chord/Key)
+  * `linear_mt_attn_ck.py`: FC layer (Multitask) with MERT + Musical Features (Chord/Key)
+* `preprocess/`
+  * `feature_extractor.py`: MERT feature extraction code.
+* `data_loader.py`: training script
+* `train.py`: training script
+* `test.py`: test script
+* `trainer.py`: trainer script
+* `inference.py`: inference script
+
 ## Training
 
 ## Inference
@@ -64,9 +79,6 @@ We present a unified multitask learning framework for Music Emotion Recognition 
 ## TODO
 
 - [ ] 
-
-## Citation
-
 
 ## Citation
 
