@@ -2,7 +2,7 @@
 
 # Music2Emo: Towards Unified Music Emotion Recognition across Dimensional and Categorical Models
 
-[arXiv](#)
+[arXiv](https://arxiv.org/abs/2502.03979)
 
 </div>
 
