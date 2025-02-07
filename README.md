@@ -46,6 +46,10 @@ We present a unified multitask learning framework for Music Emotion Recognition 
 
 ## Training
 
+```shell
+  python train.py
+```
+
 ## Inference
 
 ## Evaluation
