@@ -41,5 +41,24 @@ We present a unified multitask learning framework for Music Emotion Recognition 
 
 ## Citation
 
+
+## Citation
+
+If you find this resource useful, [please cite the original work](https://doi.org/10.48550/arXiv.2502.03979): 
+
+```bibtex
+@misc{kang2025unifiedmusicemotionrecognition,
+      title={Towards Unified Music Emotion Recognition across Dimensional and Categorical Models}, 
+      author={Jaeyong Kang and Dorien Herremans},
+      year={2025},
+      eprint={2502.03979},
+      archivePrefix={arXiv},
+      primaryClass={cs.SD},
+      url={https://arxiv.org/abs/2502.03979}, 
+}
+```
+
+Kang, J. & Herremans, D. (2025). Towards Unified Music Emotion Recognition across Dimensional and Categorical Models, arXiv.
+
 ## Acknowledgements
 
