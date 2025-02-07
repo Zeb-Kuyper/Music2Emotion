@@ -37,7 +37,7 @@ We present a unified multitask learning framework for Music Emotion Recognition 
 
 ### Comparison of performance metrics when training on multiple datasets.
 
-| **Training datasets** | **MTG-Jamendo (J.)** || **DEAM (D.)** || **EmoMusic (E.)** || **PMEmo (P.)** ||
+| **Training datasets** | **MTG-Jamendo (J.)** | **DEAM (D.)** || **EmoMusic (E.)** || **PMEmo (P.)** ||
 |----------------------|:--------------------:|:--------------------:|:-------------:|:-------------:|:----------------:|:----------------:|:--------------:|:--------------:|
 | | PR-AUC | ROC-AUC | R² V | R² A | R² V | R² A | R² V | R² A |
 | Single dataset training (X) | 0.1521 | 0.7806 | 0.5131 | 0.6025 | 0.5957 | 0.7489 | 0.5360 | 0.7772 |
