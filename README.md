@@ -36,6 +36,14 @@ pip install -r requirements.txt
 
 ## Dataset
 
+Obtain the four dataset:
+- MTG-Jamendo [(Link)](https://github.com/MTG/mtg-jamendo-dataset)
+- PMEmo [(Link)](https://drive.google.com/drive/folders/1qDk6hZDGVlVXgckjLq9LvXLZ9EgK9gw0)
+- DEAM [(Link)]([https://cvml.unige.ch/databases/DEAM/))
+- EmoMusic [(Link)](https://cvml.unige.ch/databases/emoMusic/)
+
+Put all directories under this folder (dataset/)
+
 ## Directory Structure
 
 * `config/`: Configuration files
