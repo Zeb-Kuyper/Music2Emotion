@@ -24,6 +24,15 @@ We present a unified multitask learning framework for Music Emotion Recognition 
 ## Quickstart Guide
 
 ## Installation
+This repo is developed using python version 3.10
+
+```bash
+git clone https://github.com/AMAAI-Lab/Music2Emotion
+cd Music2Emotion
+pip install -r requirements.txt
+```
+
+* Our code is built on pytorch version 2.3.1 (torch==2.3.1 in the requirements.txt). But you might need to choose the correct version of `torch` based on your CUDA version
 
 ## Dataset
 
