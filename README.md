@@ -36,13 +36,13 @@ pip install -r requirements.txt
 
 ## Dataset
 
-Obtain the four dataset:
+Download the following datasets:
 - MTG-Jamendo [(Link)](https://github.com/MTG/mtg-jamendo-dataset)
 - PMEmo [(Link)](https://drive.google.com/drive/folders/1qDk6hZDGVlVXgckjLq9LvXLZ9EgK9gw0)
 - DEAM [(Link)](https://cvml.unige.ch/databases/DEAM/)
 - EmoMusic [(Link)](https://cvml.unige.ch/databases/emoMusic/)
 
-Put all audio files (.mp3) of datasets under the following folders:
+After downloading, place all .mp3 files into the following directory structure:
 
 ```
 dataset/
@@ -55,11 +55,6 @@ dataset/
 └── emomusic/
     └── mp3/*.mp3       # EmoMusic audio files
 ```
-
-- MTG-Jamendo : `dataset/jamendo/mp3/**/*.mp3`
-- PMEmo : `dataset/pmemo/mp3/*.mp3`
-- DEAM : `dataset/deam/mp3/*.mp3`
-- EmoMusic : `dataset/emomusic/mp3/*.mp3`
 
 ## Directory Structure
 
