@@ -44,6 +44,7 @@ Obtain the four dataset:
 
 Put all audio files (.mp3) of datasets under the following folders:
 
+```
 dataset/
 ├── jamendo/
 │   └── mp3/**/*.mp3    # MTG-Jamendo audio files (nested structure)
@@ -53,6 +54,7 @@ dataset/
 │   └── mp3/*.mp3       # DEAM audio files
 └── emomusic/
     └── mp3/*.mp3       # EmoMusic audio files
+```
 
 - MTG-Jamendo : `dataset/jamendo/mp3/**/*.mp3`
 - PMEmo : `dataset/pmemo/mp3/*.mp3`
