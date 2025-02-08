@@ -67,6 +67,7 @@ dataset/
   * `linear_mt_attn_ck.py`: Multitask FC layer with MERT and musical features (chord/key)
 * `preprocess/`
   * `feature_extractor.py`: MERT feature extraction
+* `saved_models/`: Saved model weight files
 * `data_loader.py`: Data loading script
 * `train.py`: Training script
 * `test.py`: Testing script
