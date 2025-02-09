@@ -99,6 +99,8 @@ dataset/
 * `test.py`: Testing script
 * `trainer.py`: Training pipeline script
 * `inference.py`: Inference script
+* `music2emo.py`: Video2Music module that outputs emotion from input audio
+* `demo.ipynb`: Jupyter notebook for Quickstart Guide
 
 ## Training
 
