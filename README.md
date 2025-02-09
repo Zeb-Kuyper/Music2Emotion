@@ -104,7 +104,11 @@ dataset/
   python train.py
 ```
 
-## Inference
+## Test
+
+```shell
+  python test.py
+```
 
 ## Evaluation
 
