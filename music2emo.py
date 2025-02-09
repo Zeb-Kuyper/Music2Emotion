@@ -2,7 +2,14 @@ import os
 import mir_eval
 import pretty_midi as pm
 from utils import logger
-from preprocess.BTC.btc_model import *
+from utils.btc_model import BTC_model
+# from preprocess.BTC.btc_model import *
+
+from utils.transformer_modules import *
+from utils.transformer_modules import _gen_timing_signal, _gen_bias_mask
+from utils.hparams import HParams
+
+
 from utils.mir_eval_modules import audio_file_to_features, idx2chord, idx2voca_chord, get_audio_paths, get_lab_paths
 import argparse
 import warnings
@@ -28,7 +35,6 @@ import warnings
 
 import logging
 logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
-
 
 
 
