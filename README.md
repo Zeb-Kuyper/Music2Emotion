@@ -162,5 +162,4 @@ If you find this resource useful, [please cite the original work](https://doi.or
 
 Kang, J. & Herremans, D. (2025). Towards Unified Music Emotion Recognition across Dimensional and Categorical Models, arXiv.
 
-## Acknowledgements
 
