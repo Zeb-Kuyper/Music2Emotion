@@ -21,6 +21,8 @@ We present a unified multitask learning framework for Music Emotion Recognition 
 
 ## Change Log
 
+- 2025-02-10: Released Music2Emo v1.0, featuring both categorical and VA emotion prediction from music.
+
 ## Quickstart Guide
 
 
@@ -140,7 +142,7 @@ dataset/
 
 ## TODO
 
-- [ ] 
+- [ ] Incorporate additional features, such as lyrics.
 
 ## Citation
 
