@@ -87,6 +87,7 @@ dataset/
 * `config/`: Configuration files
 * `dataset/`: Dataset directories
 * `dataset_loader/`: Dataset loading utilities
+* `utils/`: Other utilities
 * `model/`
   * `linear.py`: Fully connected (FC) layer with MERT features
   * `linear_attn_ck.py`: FC layer with MERT and musical features (chord/key)
