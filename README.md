@@ -8,6 +8,8 @@
 
 This repository contains the code accompanying the paper "Towards Unified Music Emotion Recognition across Dimensional and Categorical Models" by Dr. Jaeyong Kang and Prof. Dorien Herremans.
 
+🔥 Live demo available on [HuggingFace](https://huggingface.co/spaces/amaai-lab/music2emo) 
+
 <div align="center">
   <img src="m2e.png" width="300"/>
 </div>
