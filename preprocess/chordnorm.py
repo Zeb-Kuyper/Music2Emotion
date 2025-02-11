@@ -4,10 +4,6 @@ import json
 import math
 import chordparser
 
-# directory = "./dataset/vevo_chord/lab/"
-# directory_midi = "./dataset/vevo_chord/midi/"
-# keypath = "./dataset/vevo_chord/midi_key/files_result.json"
-
 PITCH_CLASS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
 pitch_num_dic = {
@@ -110,10 +106,6 @@ def process_dataset(chord_dir, key_dir, output_dir):
     # aa = False
     for root, _, files in os.walk(chord_dir):
         for file in files:
-            # if root.split("/")[-1] == "31":
-            #     aa = True
-            # if not aa:
-            #     continue
 
             if file.endswith('.lab'):
                 chord_file_path = os.path.join(root, file)
@@ -144,71 +136,8 @@ def process_dataset(chord_dir, key_dir, output_dir):
 
 # Example usage
 if __name__ == '__main__':
-    chord_directory = '../../dataset/emomusic/chord/lab'
-    key_directory = '../../dataset/emomusic/key'
-    output_directory = '../../dataset/emomusic/chord/lab3'
+    chord_directory = '../dataset/emomusic/chord/lab'
+    key_directory = '../dataset/emomusic/key'
+    output_directory = '../dataset/emomusic/chord/lab3'
     
     process_dataset(chord_directory, key_directory, output_directory)
-
-
-
-# directory = '../../dataset/pmemo/midi'
-    
-
-
-# import chordparser
-
-# # Function to convert chord to Roman numeral based on key
-# def chord_to_roman(chord, key, key_type='major'):
-#     cp = chordparser.Parser()
-    
-#     if chord == "N":
-#         return "N"
-#     elif chord == "X":
-#         return "X"
-    
-#     if ":" in chord:
-#         chord_root = chord.split(":")[0]
-#         chord_quality= chord.split(":")[1]
-    
-#         # chord = chord.replace(':', "")
-#         # print(chord)
-#         new_chord = cp.create_chord(chord_root)
-#         key = cp.create_scale(key, key_type)
-#         roman = cp.to_roman(new_chord, key)
-#         return str(roman)+chord_quality
-#     else:
-#         new_chord = cp.create_chord(chord)
-#         key = cp.create_scale(key, key_type)
-#         roman = cp.to_roman(new_chord, key)
-#         return str(roman)
-
-
-
-# # Function to parse a .lab file and convert it to Roman numerals
-# def convert_chords_to_roman(file_path, key, key_type='major'):
-#     with open(file_path, 'r') as f:
-#         lines = f.readlines()
-    
-#     # Extract chord sequence from .lab file
-#     chord_sequence = []
-#     for line in lines:
-#         if line.strip():  # Skip empty lines
-#             parts = line.split()
-#             chord = parts[2]  # The chord is in the 3rd column
-#             chord_sequence.append(chord)
-
-#     # Convert each chord in the sequence to Roman numerals
-#     roman_sequence = [chord_to_roman(chord, key, key_type) for chord in chord_sequence]
-    
-#     return roman_sequence
-
-# # Example usage
-# if __name__ == '__main__':
-#     lab_file_path = '../data/7400.lab'  # Change this to the path of your .lab file
-#     key_signature = 'a'  # Change this to the actual key signature (e.g., 'C', 'D', 'A', etc.)
-#     key_type = 'major'  # Change this to 'minor' for minor key
-
-#     roman_numerals = convert_chords_to_roman(lab_file_path, key_signature, key_type)
-#     print("Roman Numeral Chord Progression:")
-#     print(" ".join(roman_numerals))
