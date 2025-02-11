@@ -19,8 +19,6 @@ def extract_key_signatures(directory):
         file_name = os.path.basename(file_path)
         key_path = file_path[0:-4] + "lab"
         key_path = key_path.replace("midi", "key")
-        # key_path = file_path.replace(".midi", ".lab").replace(".mid", ".lab").replace("midi", "key")
-        # Parse MIDI file and analyze key signature
         
         try:
             midi_file = converter.parse(file_path)
@@ -31,11 +29,8 @@ def extract_key_signatures(directory):
         # Save the key signature to a .lab file
         with open(key_path, 'w') as f:
             f.write(str(key_signature))
-        # print(f"Key signature for {file_name} saved to {key_path}")
-
-if __name__ == '__main__':
-    # Define the directory containing MIDI files
-    directory = '../../dataset/pmemo/midi'
     
-    # Call the function to extract key signatures and save them as .lab files
+if __name__ == '__main__':
+    directory = '../dataset/pmemo/midi'
+    
     extract_key_signatures(directory)
