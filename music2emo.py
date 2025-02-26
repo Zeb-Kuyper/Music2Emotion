@@ -1,37 +1,33 @@
+# Standard library imports
 import os
-import mir_eval
-import pretty_midi as pm
-import sys
-from Music2Emotion.utils import logger
-from Music2Emotion.utils.btc_model import BTC_model
-# from preprocess.BTC.btc_model import *
-from Music2Emotion.utils.transformer_modules import *
-from Music2Emotion.utils.transformer_modules import _gen_timing_signal, _gen_bias_mask
-from Music2Emotion.utils.hparams import HParams
-from Music2Emotion.utils.mir_eval_modules import audio_file_to_features, idx2chord, idx2voca_chord, get_audio_paths, get_lab_paths
-import argparse
-import warnings
-from music21 import converter
-import os
-from tqdm import tqdm
 import json
+import warnings
+import shutil
+from pathlib import Path
+
+# Third-party imports
+import numpy as np
 import torch
 import torchaudio
 import torchaudio.transforms as T
-import numpy as np
-from omegaconf import DictConfig
-import hydra
-from hydra.utils import to_absolute_path
-from transformers import Wav2Vec2FeatureExtractor, AutoModel
+import pretty_midi as pm
+import mir_eval
+from music21 import converter
+
+# Local application imports
+from Music2Emotion.utils import logger
+from Music2Emotion.utils.btc_model import BTC_model
+from Music2Emotion.utils.transformer_modules import *
+from Music2Emotion.utils.hparams import HParams
+from Music2Emotion.utils.mir_eval_modules import audio_file_to_features, idx2voca_chord
 from Music2Emotion.utils.mert import FeatureExtractorMERT
 from Music2Emotion.model.linear_mt_attn_ck import FeedforwardModelMTAttnCK
-from pathlib import Path
 
-import shutil
-import warnings
+# Suppress warnings
+warnings.filterwarnings('ignore')
 
-import logging
-logging.getLogger("transformers.modeling_utils").setLevel(logging.ERROR)
+# Uncomment if needed
+# from gradio import Markdown
 
 
 
