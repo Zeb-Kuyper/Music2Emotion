@@ -1,6 +1,6 @@
-from utils.transformer_modules import *
-from utils.transformer_modules import _gen_timing_signal, _gen_bias_mask
-from utils.hparams import HParams
+from Music2Emotion.utils.transformer_modules import *
+from Music2Emotion.utils.transformer_modules import _gen_timing_signal, _gen_bias_mask
+from Music2Emotion.utils.hparams import HParams
 
 use_cuda = torch.cuda.is_available()
 

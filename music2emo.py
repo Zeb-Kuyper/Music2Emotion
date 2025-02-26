@@ -1,16 +1,14 @@
 import os
 import mir_eval
 import pretty_midi as pm
-from utils import logger
-from utils.btc_model import BTC_model
+import sys
+from Music2Emotion.utils import logger
+from Music2Emotion.utils.btc_model import BTC_model
 # from preprocess.BTC.btc_model import *
-
-from utils.transformer_modules import *
-from utils.transformer_modules import _gen_timing_signal, _gen_bias_mask
-from utils.hparams import HParams
-
-
-from utils.mir_eval_modules import audio_file_to_features, idx2chord, idx2voca_chord, get_audio_paths, get_lab_paths
+from Music2Emotion.utils.transformer_modules import *
+from Music2Emotion.utils.transformer_modules import _gen_timing_signal, _gen_bias_mask
+from Music2Emotion.utils.hparams import HParams
+from Music2Emotion.utils.mir_eval_modules import audio_file_to_features, idx2chord, idx2voca_chord, get_audio_paths, get_lab_paths
 import argparse
 import warnings
 from music21 import converter
@@ -25,10 +23,9 @@ from omegaconf import DictConfig
 import hydra
 from hydra.utils import to_absolute_path
 from transformers import Wav2Vec2FeatureExtractor, AutoModel
-from utils.mert import FeatureExtractorMERT
-from model.linear_mt_attn_ck import FeedforwardModelMTAttnCK
+from Music2Emotion.utils.mert import FeatureExtractorMERT
+from Music2Emotion.model.linear_mt_attn_ck import FeedforwardModelMTAttnCK
 from pathlib import Path
-import gradio as gr
 
 import shutil
 import warnings
@@ -129,7 +126,6 @@ def normalize_chord(file_path, key, key_type='major'):
                 pnum = pitch_num_dic [pitch]
                 new_idx = (pnum - shift)%12
                 newchord = PITCH_CLASS[new_idx]
-                newchordnorm = newchord
             
             converted_lines.append(f"{start_time} {end_time} {newchordnorm}\n")
     
@@ -166,7 +162,7 @@ def split_audio(waveform, sample_rate):
 class Music2emo:
     def __init__(
         self,
-        model_weights = "saved_models/J_all.ckpt"
+        model_weights = os.path.join(os.path.dirname(__file__), "saved_models", "J_all.ckpt")  # Single checkpoint path
     ):
         use_cuda = torch.cuda.is_available()
         self.device = torch.device("cuda" if use_cuda else "cpu")
@@ -174,33 +170,33 @@ class Music2emo:
         self.feature_extractor = FeatureExtractorMERT(model_name='m-a-p/MERT-v1-95M', device=self.device, sr=resample_rate)
         self.model_weights = model_weights
 
-        self.music2emo_model = FeedforwardModelMTAttnCK(
-            input_size= 768 * 2,
+        self.music2emo_model = FeedforwardModelMTAttnCK(  # Single model instance
+            input_size=768 * 2,
             output_size_classification=56,
             output_size_regression=2
         )
 
-        checkpoint = torch.load(self.model_weights, map_location=self.device, weights_only=False)
+        checkpoint = torch.load(model_weights, map_location=self.device, weights_only=False)
         state_dict = checkpoint["state_dict"]
-        
+
         # Adjust the keys in the state_dict
         state_dict = {key.replace("model.", ""): value for key, value in state_dict.items()}
-        
+
         # Filter state_dict to match model's keys
         model_keys = set(self.music2emo_model.state_dict().keys())
         filtered_state_dict = {key: value for key, value in state_dict.items() if key in model_keys}
-        
+
         # Load the filtered state_dict and set the model to evaluation mode
         self.music2emo_model.load_state_dict(filtered_state_dict)
-        
+
         self.music2emo_model.to(self.device)
         self.music2emo_model.eval()
 
     def predict(self, audio, threshold = 0.5):
 
-        feature_dir = Path("./temp_out")
-        output_dir = Path("./output")
-        current_dir = Path("./")
+        feature_dir = Path(os.path.join(os.path.dirname(__file__), "temp_out"))
+        output_dir = Path(os.path.join(os.path.dirname(__file__), "output"))
+        current_dir = Path(os.path.dirname(__file__))
         
         if feature_dir.exists():
             shutil.rmtree(str(feature_dir))
@@ -262,15 +258,15 @@ class Music2emo:
         final_embedding_mert.to(self.device)
 
         # --- Chord feature extract ---
-        config = HParams.load("./inference/data/run_config.yaml")
+        config = HParams.load(os.path.join(os.path.dirname(__file__), "inference", "data", "run_config.yaml"))
         config.feature['large_voca'] = True
         config.model['num_chords'] = 170
-        model_file = './inference/data/btc_model_large_voca.pt'
+        model_file = os.path.join(os.path.dirname(__file__), "inference", "data", "btc_model_large_voca.pt")
         idx_to_chord = idx2voca_chord()
         model = BTC_model(config=config.model).to(self.device)
 
         if os.path.isfile(model_file):
-            checkpoint = torch.load(model_file)
+            checkpoint = torch.load(model_file, weights_only=False)
             mean = checkpoint['mean']
             std = checkpoint['std']
             model.load_state_dict(checkpoint['model'])
@@ -363,16 +359,15 @@ class Music2emo:
         idx_to_tonic = {idx: tonic for tonic, idx in tonic_to_idx.items()}
         idx_to_mode = {idx: mode for mode, idx in mode_to_idx.items()}
 
-        with open('inference/data/chord.json', 'r') as f:
+        with open(os.path.join(os.path.dirname(__file__), 'inference', 'data', 'chord.json'), 'r') as f:
             chord_to_idx = json.load(f)
-        with open('inference/data/chord_inv.json', 'r') as f:
+        with open(os.path.join(os.path.dirname(__file__), 'inference', 'data', 'chord_inv.json'), 'r') as f:
             idx_to_chord = json.load(f)
             idx_to_chord = {int(k): v for k, v in idx_to_chord.items()}  # Ensure keys are ints        
-        with open('inference/data/chord_root.json') as json_file:
-            chordRootDic = json.load(json_file)
-        with open('inference/data/chord_attr.json') as json_file:
-            chordAttrDic = json.load(json_file)
-
+        with open(os.path.join(os.path.dirname(__file__), 'inference', 'data', 'chord_root.json')) as json_file:
+             chordRootDic = json.load(json_file)
+        with open(os.path.join(os.path.dirname(__file__), 'inference', 'data', 'chord_attr.json')) as json_file:
+             chordAttrDic = json.load(json_file)
         try:
             midi_file = converter.parse(save_path.replace('.lab', '.midi'))
             key_signature = str(midi_file.analyze('key'))
@@ -471,16 +466,27 @@ class Music2emo:
         }
 
         model_input_dic = {k: v.to(self.device) for k, v in model_input_dic.items()}
-        classification_output, regression_output = self.music2emo_model(model_input_dic)
-        probs = torch.sigmoid(classification_output)
+        classification_output, regression_output = self.music2emo_model(model_input_dic)  # Single model
 
-        
 
-        tag_list = np.load ( "./inference/data/tag_list.npy")
+        tag_list = np.load(os.path.join(os.path.dirname(__file__), "inference", "data", "tag_list.npy"))
         tag_list = tag_list[127:]
         mood_list = [t.replace("mood/theme---", "") for t in tag_list]
         threshold = threshold
-        predicted_moods = [mood_list[i] for i, p in enumerate(probs.squeeze().tolist()) if p > threshold]
+        
+        probs = torch.sigmoid(classification_output).squeeze().tolist()  # Apply sigmoid to get probabilities
+
+        predicted_moods_with_scores = [
+            {"mood": mood_list[i], "score": round(p, 4)}  # Rounded for better readability
+            for i, p in enumerate(probs) if p > threshold
+        ]
+        
+        predicted_moods_with_scores_all = [
+            {"mood": mood_list[i], "score": round(p, 4)}  # Rounded for better readability
+            for i, p in enumerate(probs)
+        ]
+        
+        predicted_moods_with_scores.sort(key=lambda x: x["score"], reverse=True)
 
         # Print the results
         # print("Predicted Mood Tags:", predicted_moods)
@@ -505,7 +511,8 @@ class Music2emo:
         model_output_dic = {
             "valence": valence,
             "arousal": arousal,
-            "predicted_moods": predicted_moods
+            "predicted_moods": predicted_moods_with_scores,
+            "predicted_moods_all": predicted_moods_with_scores_all
         }
 
         return model_output_dic
